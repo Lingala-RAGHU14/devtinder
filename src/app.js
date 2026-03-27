@@ -3,45 +3,58 @@ const {adminAuth,userAuth} = require("./middlewares/auth.js")
 
 const app = express() 
 
+
+
+app.get("/getUserData",(req,res) => {
+    try{
+        throw new Error("getting error")
+        res.status(500).send("user Data sent")
+    }
+    catch(err) {
+        res.status(500).send("some error")
+    }  
+})
+
+app.use("/",(err,req,res,next)=> {
+    if(err) {
+        res.status(500).send("something went wrong")
+    }
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
 // when we "use" Handle Auth Middlewares for All GET, POST .... requests
 // "use" === "all" (both are one in same)
 
 
-app.use("/admin",adminAuth )
+// app.use("/admin",adminAuth )
 
-app.get("/user/login", (req,res)=> {
-    res.send("user logged in successfully")
-})
+// app.get("/user/login", (req,res)=> {
+//     res.send("user logged in successfully")
+// })
 
-app.get("/user",userAuth,(req,res)=> {
-    res.send("user data sent succeeded")
-})
-app.get("/admin/getData",(req,res)=>{
-     res.send("The data is successfully sent")
+// app.get("/user",userAuth,(req,res)=> {
+//     res.send("user data sent succeeded")
+// })
+// app.get("/admin/getData",(req,res)=>{
+//      res.send("The data is successfully sent")
 
-})
+// })
 
-app.get("/admin/deleteUser",(req,res)=> {
-     res.send("user deleted successfully")
+// app.get("/admin/deleteUser",(req,res)=> {
+//      res.send("user deleted successfully")
 
-})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// })
 
 // app.use("/router", [rH1,rH2,rH3,rH4,rH5]) // writing routes inside the array nothing will break 
 // app.use("/users", (req,res,next) => {
