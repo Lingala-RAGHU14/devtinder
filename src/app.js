@@ -5,14 +5,13 @@ const User = require("./models/user")
 const connectDB = require("./config/database.js")
 const app = express() 
 
+// express gave direct json covert to js object
+
+app.use(express.json())
+
 app.post("/signup", async (req,res)=> {
-    const user =new User({
-        firstName : "sruti",
-        lastName : "Lingala",
-        Email : "sr@gmail.com",
-        gender : "male",
-        age : "23"
-    })
+        const user = new User(req.body)
+
     try{
     await user.save()
     res.send("user added successfully")
