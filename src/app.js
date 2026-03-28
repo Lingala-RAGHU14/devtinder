@@ -19,11 +19,41 @@ app.post("/signup", async (req,res)=> {
         res.status(400).send("Getting error to save the user")
     }
 })
-    
-    
 
+app.get("/user", async (req,res)=> {
+    const Useremail = req.body.Email
+    console.log(Useremail)  
 
+    try{
+        
+        const user = await User.find({Email: Useremail})
+        res.send(user)
+    }catch (err) {
+        res.status(400).send("something went wrong")
+    }
+})
+//  when two  users with same id we should use "findOne"
+app.get("/oneUser", async (req,res)=> {
+    const Useremail = req.body.Email
+    console.log(Useremail)  
 
+    try{
+        
+        const user = await User.findOne({Email: Useremail})
+        res.send(user)
+    }catch (err) {
+        res.status(400).send("something went wrong")
+    }
+})
+
+app.get("/feed",async (req,res)=> {
+    try {
+        const users = await User.find({})
+        res.send(users)
+    }catch(err){
+        res.status(400).send("something went wrong")
+    }
+})
 
 connectDB()
     .then(()=> {
