@@ -1,25 +1,41 @@
 const express = require("express")
 const {adminAuth,userAuth} = require("./middlewares/auth.js")
+const User = require("./models/user")
 
+const connectDB = require("./config/database.js")
 const app = express() 
 
-
-
-app.get("/getUserData",(req,res) => {
+app.post("/signup", async (req,res)=> {
+    const user =new User({
+        firstName : "sruti",
+        lastName : "Lingala",
+        Email : "sr@gmail.com",
+        gender : "male",
+        age : "23"
+    })
     try{
-        throw new Error("getting error")
-        res.status(500).send("user Data sent")
-    }
-    catch(err) {
-        res.status(500).send("some error")
-    }  
-})
-
-app.use("/",(err,req,res,next)=> {
-    if(err) {
-        res.status(500).send("something went wrong")
+    await user.save()
+    res.send("user added successfully")
+    }catch (err) {
+        res.status(400).send("Getting error to save the user")
     }
 })
+    
+    
+
+
+
+
+connectDB()
+    .then(()=> {
+        console.log("DB connected  Succesfully")
+        app.listen(3000, ()=> {
+        console.log("server started successfully")
+})
+})
+.catch((err)=> {
+    console.error("DB Not connected",err)
+})
 
 
 
@@ -32,6 +48,25 @@ app.use("/",(err,req,res,next)=> {
 
 
 
+
+
+
+
+// app.get("/getUserData",(req,res) => {
+//     try{
+//         throw new Error("getting error")
+//         res.status(500).send("user Data sent")
+//     }
+//     catch(err) {
+//         res.status(500).send("some error")
+//     }  
+// })
+
+// app.use("/",(err,req,res,next)=> {
+//     if(err) {
+//         res.status(500).send("something went wrong")
+//     }
+// })
 
 // when we "use" Handle Auth Middlewares for All GET, POST .... requests
 // "use" === "all" (both are one in same)
@@ -82,15 +117,15 @@ app.use("/",(err,req,res,next)=> {
 // })
 
 // this will match all the http methods to api call /test
-app.use("/test", (req,res)=> {   // request handlers && order is very important 
-    res.send("server testing by routings")
-})
-
-
-// app.use("/helo", (req,res)=> {
-//     res.send("hello hello hello")
+// app.use("/test", (req,res)=> {   // request handlers && order is very important 
+//     res.send("server testing by routings")
 // })
 
-app.listen(3000, () => {
-    console.log("server sucessfully started")
-})
+
+// // app.use("/helo", (req,res)=> {
+// //     res.send("hello hello hello")
+// // })
+
+// app.listen(3000, () => {
+//     console.log("server sucessfully started")
+// })
