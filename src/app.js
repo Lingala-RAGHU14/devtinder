@@ -8,7 +8,7 @@ const app = express()
 // express gave direct json covert to js object
 
 app.use(express.json())
-
+// put the data into DB
 app.post("/signup", async (req,res)=> {
         const user = new User(req.body)
 
@@ -20,6 +20,7 @@ app.post("/signup", async (req,res)=> {
     }
 })
 
+// to get user by email we use find()
 app.get("/user", async (req,res)=> {
     const Useremail = req.body.Email
     console.log(Useremail)  
@@ -46,6 +47,7 @@ app.get("/oneUser", async (req,res)=> {
     }
 })
 
+// to get all the users from DB
 app.get("/feed",async (req,res)=> {
     try {
         const users = await User.find({})
@@ -55,6 +57,55 @@ app.get("/feed",async (req,res)=> {
     }
 })
 
+//  to delete the user from the DB
+app.delete("/user",async (req,res)=> {
+   const  userId = req.body.userId
+   console.log(userId)
+
+    try{
+        const user = await User.findByIdAndDelete(userId)
+        res.send("user deleted successfully")
+    }catch (err) {
+        res.status(500).send("something went wrong")
+    }
+})
+
+// to update the user using userId
+
+// app.patch("/user",async (req,res) => {
+//     const userId = req.body.userId
+//     const data = req.body
+//     // console.log(data)
+//     try {
+//        const user =  await User.findByIdAndUpdate(userId,data,{returnDocument:'after'})
+//        console.log(user)
+//        res.send("user updated successfully")
+//     }catch (err) {
+//         res.status(500).send("something went wrong")
+//     }
+// })
+// to update the user using emailId 
+
+app.patch("/user", async (req,res)=> {
+   const emailId = req.body.Email
+//    console.log(emailId)
+   const data = req.body
+//    console.log(data)
+   try{
+        const userEmail = await User.findOneAndUpdate({Email : emailId},data)
+        console.log(userEmail)
+        if(!userEmail) {
+            res.status(400).send("such user not found")
+        }else {
+            res.send("updated successfully using email")
+        }
+      
+        
+   }catch (err) {
+        res.status(500).send("something went wrong")
+    }
+})
+// for the git  
 connectDB()
     .then(()=> {
         console.log("DB connected  Succesfully")
