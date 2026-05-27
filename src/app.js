@@ -11,22 +11,24 @@ app.use(express.json())
 // put the data into DB
 app.post("/signup", async (req,res)=> {
         const user = new User(req.body)
-
     try{
     await user.save()
     res.send("user added successfully")
     }catch (err) {
-        res.status(400).send("Getting error to save the user")
+        res.status(400).send("Getting error to save the user" + err.message)
     }
 })
 
 // to get user by email we use find()
 app.get("/user", async (req,res)=> {
-    const Useremail = req.body.Email
-    console.log(Useremail)  
+    const Useremail = req.query.Email || req.body.Email
+    console.log(Useremail)
+
+    if (!Useremail) {
+        return res.status(400).send("Email is required")
+    }
 
     try{
-        
         const user = await User.find({Email: Useremail})
         res.send(user)
     }catch (err) {
@@ -35,11 +37,14 @@ app.get("/user", async (req,res)=> {
 })
 //  when two  users with same id we should use "findOne"
 app.get("/oneUser", async (req,res)=> {
-    const Useremail = req.body.Email
-    console.log(Useremail)  
+    const Useremail = req.query.Email || req.body.Email
+    console.log(Useremail)
+
+    if (!Useremail) {
+        return res.status(400).send("Email is required")
+    }
 
     try{
-        
         const user = await User.findOne({Email: Useremail})
         res.send(user)
     }catch (err) {
@@ -59,11 +64,15 @@ app.get("/feed",async (req,res)=> {
 
 //  to delete the user from the DB
 app.delete("/user",async (req,res)=> {
-   const  userId = req.body.userId
+   const userId = req.query.userId || req.body.userId
    console.log(userId)
 
+   if (!userId) {
+       return res.status(400).send("userId is required")
+   }
+
     try{
-        const user = await User.findByIdAndDelete(userId)
+        await User.findByIdAndDelete(userId)
         res.send("user deleted successfully")
     }catch (err) {
         res.status(500).send("something went wrong")
@@ -87,22 +96,50 @@ app.delete("/user",async (req,res)=> {
 // to update the user using emailId 
 
 app.patch("/user", async (req,res)=> {
-   const emailId = req.body.Email
-//    console.log(emailId)
-   const data = req.body
-//    console.log(data)
+   const emailId = req.query.Email || req.body.Email || req.body.email
+   const userId = req.query.userId || req.body.userId
+   const data = { ...req.body }
+
+   if (!emailId && !userId) {
+       return res.status(400).send("Email or userId is required")
+   }
+
+   if (data.Email) {
+       data.Email = data.Email.toLowerCase()
+   }
+   if (data.email) {
+       data.Email = data.email.toLowerCase()
+       delete data.email
+   }
+
+   const filter = userId ? { _id: userId } : { Email: emailId }
+   delete data.userId
+
+   if (Object.keys(data).length === 0) {
+       return res.status(400).send("No update data provided")
+   }
+
    try{
-        const userEmail = await User.findOneAndUpdate({Email : emailId},data)
-        console.log(userEmail)
-        if(!userEmail) {
-            res.status(400).send("such user not found")
-        }else {
-            res.send("updated successfully using email")
+        const updatedUser = await User.findOneAndUpdate(filter, data, { returnDocument: 'after', runValidators: true })
+        console.log(updatedUser)
+        if(!updatedUser) {
+            return res.status(400).send("such user not found")
         }
-      
-        
-   }catch (err) {
-        res.status(500).send("something went wrong")
+
+        res.send("updated successfully")
+    const ALLOWED_UPDATE = ["password", "age", "photoUrl", "about","skills"] 
+    
+    const isUpdateAllowed = object.keys(data).every((k) => 
+        ALLOWED_UPDATE.includes(k)
+)
+    if(!isUpdateAllowed) {
+        return res.status(400).send("update is not allowed") }
+    if (data.skills > 10) {
+        return res.status(400).send("not allowed more than 10 skills")
+    }
+    }catch (err) {
+        console.error(err)
+        res.status(500).send(err.message || "something went wrong")
     }
 })
 // for the git  
