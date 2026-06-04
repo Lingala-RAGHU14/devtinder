@@ -1,6 +1,11 @@
 const express = require("express")
-const {adminAuth,userAuth} = require("./middlewares/auth.js")
+const {userAuth} = require("./middlewares/auth.js")
 const User = require("./models/user")
+const {validationSignup} = require("./utils/validation")
+const bcrypt = require("bcrypt")
+const validator = require("validator")
+const cookieParser = require("cookie-parser")
+const jwt = require("jsonwebtoken")
 
 const connectDB = require("./config/database.js")
 const app = express() 
@@ -8,76 +13,80 @@ const app = express()
 // express gave direct json covert to js object
 
 app.use(express.json())
+app.use(cookieParser())
+
 // put the data into DB
 app.post("/signup", async (req,res)=> {
-        const user = new User(req.body)
+
+    //validation
     try{
+     validationSignup(req)
+
+    // encryption 
+    const  {firstName, lastName, email, password} = req.body
+    
+    const passwordHash = await bcrypt.hash(password, 10);
+    console.log(passwordHash)
+
+        const user = new User({
+            firstName,lastName,email,password: passwordHash
+        })
+    
     await user.save()
     res.send("user added successfully")
     }catch (err) {
-        res.status(400).send("Getting error to save the user" + err.message)
+        res.status(400).send("Getting error to save the user " + err.message)
     }
+})
+
+app.post("/login",async (req,res)=> {
+    try{
+        const {email,password} = req.body 
+
+        if (!validator.isEmail(email)) {
+            throw new Error("email is not a valid please enter a valid email id")
+        }
+
+        const user = await User.findOne({email : email}) 
+        if (!user) {
+            throw new Error("Invalid Credentials")
+        }
+        const isPasswordValid = await bcrypt.compare(password, user.password );
+
+        //create a jwt token 
+        
+        if (isPasswordValid) {
+
+            const token = await jwt.sign({_id : user._id},"DEV@#TIND@ER123",{expiresIn : "7d"} )
+            // console.log(token)
+
+            res.cookie("token",token, {expires: new Date(Date.now() +1 * 3600000),})
+            res.send("you're logged in successfully")
+        }else {
+            throw new Error("Invalid Credentials")
+        }
+    }catch (err) {
+        res.status(400).send ("Getting error to save the user " + err.message)
+    }
+})
+app.get("/profile",userAuth, async (req,res) => {
+    try {
+        const user = req.user
+        res.send(user)
+    }catch (err) {
+        res.status(400).send ("Please log in to access the profile  " + err.message)
+    }
+    
+})
+
+app.post("/sendConnectionReq",userAuth, async (req,res)=> {
+    const user = req.user
+    console.log("sending a connection request")
+    res.send("This connection was sent by " + user.firstName)
 })
 
 // to get user by email we use find()
-app.get("/user", async (req,res)=> {
-    const Useremail = req.query.Email || req.body.Email
-    console.log(Useremail)
 
-    if (!Useremail) {
-        return res.status(400).send("Email is required")
-    }
-
-    try{
-        const user = await User.find({Email: Useremail})
-        res.send(user)
-    }catch (err) {
-        res.status(400).send("something went wrong")
-    }
-})
-//  when two  users with same id we should use "findOne"
-app.get("/oneUser", async (req,res)=> {
-    const Useremail = req.query.Email || req.body.Email
-    console.log(Useremail)
-
-    if (!Useremail) {
-        return res.status(400).send("Email is required")
-    }
-
-    try{
-        const user = await User.findOne({Email: Useremail})
-        res.send(user)
-    }catch (err) {
-        res.status(400).send("something went wrong")
-    }
-})
-
-// to get all the users from DB
-app.get("/feed",async (req,res)=> {
-    try {
-        const users = await User.find({})
-        res.send(users)
-    }catch(err){
-        res.status(400).send("something went wrong")
-    }
-})
-
-//  to delete the user from the DB
-app.delete("/user",async (req,res)=> {
-   const userId = req.query.userId || req.body.userId
-   console.log(userId)
-
-   if (!userId) {
-       return res.status(400).send("userId is required")
-   }
-
-    try{
-        await User.findByIdAndDelete(userId)
-        res.send("user deleted successfully")
-    }catch (err) {
-        res.status(500).send("something went wrong")
-    }
-})
 
 // to update the user using userId
 
@@ -153,21 +162,6 @@ connectDB()
 .catch((err)=> {
     console.error("DB Not connected",err)
 })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // app.get("/getUserData",(req,res) => {
 //     try{
