@@ -1,4 +1,7 @@
 const validator = require("validator") 
+const User = require("../models/user")
+const bcrypt = require("bcrypt")
+
 
 const validationSignup = (req) => {
 
@@ -14,6 +17,24 @@ const validationSignup = (req) => {
     
 }
 
+const validateEditProfileData = (req) => {
+    const allowedEditFields = ["firstName","lastName","age","about","skills","photoUrl"]
+
+    if(req.body.skills.length > 7) {
+        throw new Error("you have enough limit for skills ")
+    }
+
+    const isEditAllowed = Object.keys(req.body).every((field)=>allowedEditFields.includes(field))
+
+    return isEditAllowed;
+}
+
+const validateForgotenPassword = async (req) => { }
+
+    
+ 
 module.exports = {
     validationSignup,
+    validateEditProfileData,
+    validateForgotenPassword,
 }

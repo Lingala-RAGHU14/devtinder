@@ -7,83 +7,64 @@ const validator = require("validator")
 const cookieParser = require("cookie-parser")
 const jwt = require("jsonwebtoken")
 
+const authRouter = require("./Routes/auth.js")
+const profileRouter = require("./Routes/profile.js")
+const requestRouter = require("./Routes/request.js")
+
 const connectDB = require("./config/database.js")
 const app = express() 
-
-// express gave direct json covert to js object
 
 app.use(express.json())
 app.use(cookieParser())
 
+app.use("/", authRouter)
+app.use("/", profileRouter)
+app.use("/", requestRouter)
+// express gave direct json covert to js object
+
 // put the data into DB
-app.post("/signup", async (req,res)=> {
 
-    //validation
-    try{
-     validationSignup(req)
 
-    // encryption 
-    const  {firstName, lastName, email, password} = req.body
+// app.post("/login",async (req,res)=> {
+//     try{
+//         const {email,password} = req.body 
+
+//         if (!validator.isEmail(email)) {
+//             throw new Error("email is not a valid please enter a valid email id")
+//         }
+
+//         const user = await User.findOne({email : email}) 
+//         if (!user) {
+//             throw new Error("Invalid Credentials")
+//         }
+//         const isPasswordValid = await user.validatePassword(password)    
+
+//         if (isPasswordValid) {
+//             const token = await user.getJWT()
+//             res.cookie("token",token, {expires: new Date(Date.now() +1 * 3600000),})
+//             res.send("you're logged in successfully")
+//         }else {
+//             throw new Error("Invalid Credentials")
+//         }
+//     }catch (err) {
+//         res.status(400).send ("Getting error to save the user " + err.message)
+//     }
+// })
+// app.get("/profile",userAuth, async (req,res) => {
+//     try {
+//         const user = req.user
+//         res.send(user)
+//     }catch (err) {
+//         res.status(400).send ("Please log in to access the profile  " + err.message)
+//     }
     
-    const passwordHash = await bcrypt.hash(password, 10);
-    console.log(passwordHash)
+// })
 
-        const user = new User({
-            firstName,lastName,email,password: passwordHash
-        })
-    
-    await user.save()
-    res.send("user added successfully")
-    }catch (err) {
-        res.status(400).send("Getting error to save the user " + err.message)
-    }
-})
-
-app.post("/login",async (req,res)=> {
-    try{
-        const {email,password} = req.body 
-
-        if (!validator.isEmail(email)) {
-            throw new Error("email is not a valid please enter a valid email id")
-        }
-
-        const user = await User.findOne({email : email}) 
-        if (!user) {
-            throw new Error("Invalid Credentials")
-        }
-        const isPasswordValid = await bcrypt.compare(password, user.password );
-
-        //create a jwt token 
-        
-        if (isPasswordValid) {
-
-            const token = await jwt.sign({_id : user._id},"DEV@#TIND@ER123",{expiresIn : "7d"} )
-            // console.log(token)
-
-            res.cookie("token",token, {expires: new Date(Date.now() +1 * 3600000),})
-            res.send("you're logged in successfully")
-        }else {
-            throw new Error("Invalid Credentials")
-        }
-    }catch (err) {
-        res.status(400).send ("Getting error to save the user " + err.message)
-    }
-})
-app.get("/profile",userAuth, async (req,res) => {
-    try {
-        const user = req.user
-        res.send(user)
-    }catch (err) {
-        res.status(400).send ("Please log in to access the profile  " + err.message)
-    }
-    
-})
-
-app.post("/sendConnectionReq",userAuth, async (req,res)=> {
-    const user = req.user
-    console.log("sending a connection request")
-    res.send("This connection was sent by " + user.firstName)
-})
+// app.post("/sendConnectionReq",userAuth, async (req,res)=> {
+//     const user = req.user
+//     console.log("sending a connection request")
+//     res.send("This connection was sent by " + user.firstName)
+// })
 
 // to get user by email we use find()
 
@@ -104,53 +85,53 @@ app.post("/sendConnectionReq",userAuth, async (req,res)=> {
 // })
 // to update the user using emailId 
 
-app.patch("/user", async (req,res)=> {
-   const emailId = req.query.Email || req.body.Email || req.body.email
-   const userId = req.query.userId || req.body.userId
-   const data = { ...req.body }
+// app.patch("/user", async (req,res)=> {
+//    const emailId = req.query.Email || req.body.Email || req.body.email
+//    const userId = req.query.userId || req.body.userId
+//    const data = { ...req.body }
 
-   if (!emailId && !userId) {
-       return res.status(400).send("Email or userId is required")
-   }
+//    if (!emailId && !userId) {
+//        return res.status(400).send("Email or userId is required")
+//    }
 
-   if (data.Email) {
-       data.Email = data.Email.toLowerCase()
-   }
-   if (data.email) {
-       data.Email = data.email.toLowerCase()
-       delete data.email
-   }
+//    if (data.Email) {
+//        data.Email = data.Email.toLowerCase()
+//    }
+//    if (data.email) {
+//        data.Email = data.email.toLowerCase()
+//        delete data.email
+//    }
 
-   const filter = userId ? { _id: userId } : { Email: emailId }
-   delete data.userId
+//    const filter = userId ? { _id: userId } : { Email: emailId }
+//    delete data.userId
 
-   if (Object.keys(data).length === 0) {
-       return res.status(400).send("No update data provided")
-   }
+//    if (Object.keys(data).length === 0) {
+//        return res.status(400).send("No update data provided")
+//    }
 
-   try{
-        const updatedUser = await User.findOneAndUpdate(filter, data, { returnDocument: 'after', runValidators: true })
-        console.log(updatedUser)
-        if(!updatedUser) {
-            return res.status(400).send("such user not found")
-        }
+//    try{
+//         const updatedUser = await User.findOneAndUpdate(filter, data, { returnDocument: 'after', runValidators: true })
+//         console.log(updatedUser)
+//         if(!updatedUser) {
+//             return res.status(400).send("such user not found")
+//         }
 
-        res.send("updated successfully")
-    const ALLOWED_UPDATE = ["password", "age", "photoUrl", "about","skills"] 
+//         res.send("updated successfully")
+//     const ALLOWED_UPDATE = ["password", "age", "photoUrl", "about","skills"] 
     
-    const isUpdateAllowed = object.keys(data).every((k) => 
-        ALLOWED_UPDATE.includes(k)
-)
-    if(!isUpdateAllowed) {
-        return res.status(400).send("update is not allowed") }
-    if (data.skills > 10) {
-        return res.status(400).send("not allowed more than 10 skills")
-    }
-    }catch (err) {
-        console.error(err)
-        res.status(500).send(err.message || "something went wrong")
-    }
-})
+//     const isUpdateAllowed = object.keys(data).every((k) => 
+//         ALLOWED_UPDATE.includes(k)
+// )
+//     if(!isUpdateAllowed) {
+//         return res.status(400).send("update is not allowed") }
+//     if (data.skills > 10) {
+//         return res.status(400).send("not allowed more than 10 skills")
+//     }
+//     }catch (err) {
+//         console.error(err)
+//         res.status(500).send(err.message || "something went wrong")
+//     }
+// })
 // for the git  
 connectDB()
     .then(()=> {
