@@ -10,6 +10,7 @@ const jwt = require("jsonwebtoken")
 const authRouter = require("./Routes/auth.js")
 const profileRouter = require("./Routes/profile.js")
 const requestRouter = require("./Routes/request.js")
+const userRouter = require("./Routes/user.js")
 
 const connectDB = require("./config/database.js")
 const app = express() 
@@ -20,6 +21,7 @@ app.use(cookieParser())
 app.use("/", authRouter)
 app.use("/", profileRouter)
 app.use("/", requestRouter)
+app.use("/", userRouter)
 // express gave direct json covert to js object
 
 // put the data into DB
