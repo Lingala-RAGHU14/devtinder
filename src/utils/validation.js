@@ -18,21 +18,21 @@ const validationSignup = (req) => {
 }
 
 const validateEditProfileData = (req) => {
-    const allowedEditFields = ["firstName","lastName","age","about","skills","photoUrl"]
+  const allowedEditFields = ["firstName","lastName","age","about","skills","photoUrl","gender"];
 
-    if(req.body.skills.length > 7) {
-        throw new Error("you have enough limit for skills ")
-    }
+  if (req.body.skills && req.body.skills.length > 7) {
+    throw new Error("you have enough limit for skills");
+  }
 
-    const isEditAllowed = Object.keys(req.body).every((field)=>allowedEditFields.includes(field))
+  const isEditAllowed = Object.keys(req.body).every((field) =>
+    allowedEditFields.includes(field)
+  );
 
-    return isEditAllowed;
+  return isEditAllowed;
 }
 
 const validateForgotenPassword = async (req) => { }
 
-    
- 
 module.exports = {
     validationSignup,
     validateEditProfileData,

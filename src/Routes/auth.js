@@ -42,18 +42,17 @@ AuthRouter.post("/login",async (req,res)=> {
         if (!user) {
             throw new Error("Invalid Credentials")
         }
-        const isPasswordValid = await user.validatePassword(password)   
-        console.log(password) 
+        const isPasswordValid = await user.validatePassword(password)    
 
         if (isPasswordValid) {
             const token = await user.getJWT()
             res.cookie("token",token, {expires: new Date(Date.now() +1 * 3600000),})
-            res.send("you're logged in successfully")
+            res.send(user)
         }else {
             throw new Error("Invalid Credentials")
         }
     }catch (err) {
-        res.status(400).send ("Getting error to save the user " + err.message)
+        res.status(400).send ("ERROR: " + err.message)
     }
 })
 

@@ -24,23 +24,10 @@ profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
     }
 
     const loggedInUser = req.user
-    
-
-
-    const updates = Object.keys(req.body)
-    console.log(loggedInUser)
-
-
-    if (updates.length === 0) {
-      throw new Error("No update data provided")
-    }
-
-    updates.forEach((field) => {
-      loggedInUser[field] = req.body[field]
-    })
+     Object.keys(req.body).forEach((key)=> (loggedInUser[key]=req.body[key]))
 
     await loggedInUser.save()
-    res.send({ message: ` ${loggedInUser.firstName} your Profile updated successfully`, user: loggedInUser })
+    res.json({ message: ` ${loggedInUser.firstName} your Profile updated successfully`, data: loggedInUser })
   } catch (err) {
     res.status(400).send("you're unable to edit this profile " + err.message)
   }

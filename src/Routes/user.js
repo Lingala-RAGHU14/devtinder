@@ -5,7 +5,7 @@ const User = require("../models/user")
 
 const userRouter =  express.Router()
 
-const SAFEDATA = "firstName lastName age gender skills photoUrl";
+const SAFEDATA = "firstName lastName age gender skills photoUrl about";
 
 userRouter.get("/user/request/received",userAuth,async (req,res)=> {
     try{
@@ -59,9 +59,6 @@ userRouter.get("/feed", userAuth, async (req,res)=> {
     limit = limit > 50 ? 50 : limit 
     const skip = (page -1 ) * limit 
 
-
-
-
     const connectionRequest = await ConnectionRequest.find({
         $or : [
             {fromUserId: loggedinUser._id.toString()},
@@ -87,7 +84,5 @@ userRouter.get("/feed", userAuth, async (req,res)=> {
     res.status(400).send("ERROR " + err.message)
 }
 })
-
-
 
 module.exports = userRouter;

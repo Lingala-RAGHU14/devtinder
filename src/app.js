@@ -6,6 +6,7 @@ const bcrypt = require("bcrypt")
 const validator = require("validator")
 const cookieParser = require("cookie-parser")
 const jwt = require("jsonwebtoken")
+const cors  = require("cors")
 
 const authRouter = require("./Routes/auth.js")
 const profileRouter = require("./Routes/profile.js")
@@ -15,8 +16,11 @@ const userRouter = require("./Routes/user.js")
 const connectDB = require("./config/database.js")
 const app = express() 
 
+// Allow requests from the frontend at localhost:5173 and allow cookies
+
 app.use(express.json())
 app.use(cookieParser())
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }))
 
 app.use("/", authRouter)
 app.use("/", profileRouter)
