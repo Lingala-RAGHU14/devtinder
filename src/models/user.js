@@ -48,6 +48,7 @@ const userSchema = new mongoose.Schema({
     },
     photoUrl : {
         type: String,
+        default : "https://img.magnific.com/premium-vector/vector-flat-illustration-grayscale-avatar-user-profile-person-icon-gender-neutral-silhouette_719432-3512.jpg?semt=ais_hybrid&w=740&q=80"
     },
     about : {
         type : String,
